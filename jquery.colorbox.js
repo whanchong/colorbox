@@ -128,6 +128,61 @@
 		requests = 0,
 		init;
 
+	// ***********************
+	// TOUCH FEATURE FUNCTIONS
+	// ***********************
+
+	var navigatorIds = navigator.appVersion || navigator.userAgent;
+
+	// Browser capabilities
+	var isAndroid = (/android/gi).test(navigatorIds);
+	var isIDevice = (/iphone|ipad|ipod/gi).test(navigatorIds);
+	var isTouchPad = (/hp-tablet/gi).test(navigatorIds);
+
+	var hasTouch = 'ontouchstart' in window && !isTouchPad;
+
+	var body;
+	var startX;
+	var deltaX;
+
+	function addTouchEvents() {
+		body = document.getElementsByTagName("body")[0];
+		console.log(body);
+		body.addEventListener("touchstart", touchStart, false);
+		body.addEventListener("touchend", touchEnd, false);
+	}
+
+	function touchStart(e) {
+
+		var point = e.touches[0];
+		var target = e.target;
+
+		startX = point.pageX;
+
+		if (target.id === "cboxOverlay" || target.className === "cboxPhoto") {
+			e.stopPropagation();
+		}
+	}
+
+	function touchEnd(e) {
+		var point = e.changedTouches[0];
+		var distance = 100;
+
+		deltaX = point.pageX - startX;
+
+		if (deltaX > distance) {
+			// right
+			console.log("right");
+			publicMethod.next();
+		} else if (deltaX < -distance) {
+			// left
+			console.log("left");
+			publicMethod.prev();
+		}
+	}
+
+
+
 	// ****************
 	// HELPER FUNCTIONS
 	// ****************
@@ -352,7 +407,6 @@
 				loadedHeight = $loaded.outerHeight(true);
 				loadedWidth = $loaded.outerWidth(true);
 
-
 				// Opens inital empty Colorbox prior to content being loaded.
 				settings.w = setSize(settings.initialWidth, 'x');
 				settings.h = setSize(settings.initialHeight, 'y');
@@ -437,6 +491,10 @@
 			$groupControls = $next.add($prev).add($current).add($slideshow);
 
 			$(document.body).append($overlay, $box.append($wrap, $loadingBay));
+
+			if (hasTouch) {
+				addTouchEvents();
+			}
 		}
 	}
 
@@ -935,6 +993,13 @@
 
 					photo.style.width = photo.width + 'px';
 					photo.style.height = photo.height + 'px';
+
+
+					$("#" + prefix + 'Previous').width(100);
+					$("#" + prefix + 'Previous').height(photo.height);
+					$("#" + prefix + 'Next').width(100);
+					$("#" + prefix + 'Next').height(photo.height);
+
 
 					setTimeout(function () { // A pause because Chrome will sometimes report a 0 by 0 size otherwise.
 						prep(photo);
